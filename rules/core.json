@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0",
+  "rules": [
+    { "id": "obf.base64_eval", "pattern": "(?:eval|assert)\\s*\\(\\s*base64_decode\\s*\\(", "severity": "high", "tags": ["obfuscation","rce"] },
+    { "id": "obf.inflate_chain", "pattern": "gzinflate\\s*\\(\\s*base64_decode\\s*\\(", "severity": "high", "tags": ["obfuscation"] },
+    { "id": "danger.preg_replace_e", "pattern": "preg_replace\\s*\\([^\\)]*?/e[\\\"']?\\s*,", "severity": "high", "tags": ["rce","legacy"] },
+    { "id": "danger.system_calls", "pattern": "(?:shell_exec|system|passthru|popen|proc_open)\\s*\\(", "severity": "medium", "tags": ["exec"] },
+    { "id": "dyn.func", "pattern": "\\$[A-Za-z_][A-Za-z0-9_]*\\s*\\(", "severity": "medium", "tags": ["dynamic"] },
+    { "id": "obf.rot13", "pattern": "str_rot13\\s*\\(", "severity": "low", "tags": ["obfuscation"] },
+    { "id": "obf.chr_chain", "pattern": "(?:chr\\s*\\(\\d+\\)\\s*\\.\\s*){5,}", "severity": "medium", "tags": ["obfuscation"] },
+    { "id": "upload.php_in_media", "pattern": "\\<\\?php", "severity": "high", "tags": ["php-in-media"], "hint": "Flag when extension is image/media" },
+    { "id": "wordpress.filesman", "pattern": "FilesMan\\s+shell|IndoXploit|WSO\\s*\\-\\s*Web\\s*Shell", "severity": "high", "tags": ["wordpress","webshell"] },
+    { "id": "danger.create_function", "pattern": "create_function\\s*\\(", "severity": "medium", "tags": ["rce","legacy"] }
+  ]
+}

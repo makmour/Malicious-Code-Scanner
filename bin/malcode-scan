@@ -1,0 +1,86 @@
+#!/usr/bin/env php
+<?php
+declare(strict_types=1);
+
+require __DIR__ . '/../vendor/autoload.php';
+
+use MCS\Scanner;
+use MCS\Reporter;
+use MCS\Notifiers\EmailNotifier;
+use MCS\Notifiers\WebhookNotifier;
+use MCS\RuleMatcher;
+
+$options = getopt('', [
+    'path::','ext::','exclude::','size-limit::',
+    'report::','out::','email::','smtp-host::','smtp-user::','smtp-pass::','smtp-port::',
+    'webhook::','rules::','progress','strict','wp-mode','quarantine::'
+]);
+
+$path       = $options['path']        ?? getcwd();
+$ext        = isset($options['ext']) ? array_filter(array_map('trim', explode(',', $options['ext']))) : ['php','php5','phtml','inc'];
+$exclude    = isset($options['exclude']) ? array_filter(array_map('trim', explode(',', $options['exclude']))) :
+  ['.git','node_modules','vendor','storage','cache','wp-content/cache','wp-content/uploads','var/cache'];
+$sizeLimit  = isset($options['size-limit']) ? (int)$options['size-limit'] : 10*1024*1024; // 10MB
+$reportFmt  = $options['report'] ?? 'json'; // json|sarif (sarif placeholder)
+$out        = $options['out'] ?? null;
+$rulesPath  = $options['rules'] ?? __DIR__ . '/../rules/core.json';
+$progress   = array_key_exists('progress', $options);
+$strictExit = array_key_exists('strict', $options);
+$wpMode     = array_key_exists('wp-mode', $options);
+$quarantine = $options['quarantine'] ?? null; // pass a folder path to enable
+
+if ($wpMode) {
+    $exclude = array_values(array_unique(array_merge($exclude, [
+        'wp-content/cache','wp-content/languages','wp-content/upgrade','wp-content/ai1wm-backups'
+    ])));
+}
+
+$rulesFiles = [$rulesPath];
+if ($wpMode) {
+    $rulesFiles[] = __DIR__ . '/../rules/wordpress.json';
+}
+
+$scanner = Scanner::fromDefaultsMultiple($rulesFiles, $ext, $exclude, $sizeLimit, $progress, $quarantine);
+$findings = $scanner->scan($path);
+
+$reporter = new Reporter($reportFmt);
+$result = $reporter->render($findings, [
+    'scanned_path' => $path,
+    'extensions'   => $ext,
+    'excludes'     => $exclude,
+    'size_limit'   => $sizeLimit,
+    'rules_files'  => $rulesFiles,
+    'timestamp'    => gmdate('c'),
+    'wp_mode'      => $wpMode
+]);
+
+if ($out) {
+    file_put_contents($out, $result . PHP_EOL);
+    echo "Report written to {$out}\n";
+} else {
+    echo $result . PHP_EOL;
+}
+
+// Notifiers
+$notifiers = [];
+if (!empty($options['email'])) {
+    $notifiers[] = new EmailNotifier([
+        'to' => $options['email'],
+        'smtp_host' => $options['smtp-host'] ?? null,
+        'smtp_user' => $options['smtp-user'] ?? null,
+        'smtp_pass' => $options['smtp-pass'] ?? null,
+        'smtp_port' => isset($options['smtp-port']) ? (int)$options['smtp-port'] : 587,
+    ]);
+}
+if (!empty($options['webhook'])) {
+    $notifiers[] = new WebhookNotifier($options['webhook']);
+}
+foreach ($notifiers as $n) {
+    $n->notify($findings);
+}
+
+// Exit codes: 0 clean, 1 suspicious (when --strict), 2 reserved
+if (!empty($findings)) {
+    exit($strictExit ? 1 : 0);
+}
+exit(0);

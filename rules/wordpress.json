@@ -1,0 +1,10 @@
+{
+  "version": "1.0.0",
+  "rules": [
+    { "id": "wp.muplugin.suspicious", "pattern": "add_action\\s*\\(\\s*['\\\"]init['\\\"].*(?:eval|assert|base64_decode)", "severity": "high", "tags": ["wordpress","mu-plugins"] },
+    { "id": "wp.db.php_backdoor", "pattern": "wp-config\\.php.*?(?:eval|assert|include\\s*\\$\\w+)", "severity": "high", "tags": ["wordpress","config"] },
+    { "id": "wp.ajax.hidden_shell", "pattern": "add_action\\s*\\(\\s*['\\\"][\\w-]+_ajax_\\w+['\\\"].*?\\$\\w+\\s*\\(", "severity": "medium", "tags": ["wordpress","ajax"] },
+    { "id": "wp.filesman.signature", "pattern": "FilesMan\\s+shell|IndoXploit|WSO\\s*\\-\\s*Web\\s*Shell", "severity": "high", "tags": ["wordpress","webshell"] },
+    { "id": "wp.uploader.php_in_uploads", "pattern": "\\<\\?php", "severity": "high", "tags": ["wordpress","uploads"], "hint": "Flag when file is under wp-content/uploads" }
+  ]
+}
