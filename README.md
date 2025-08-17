@@ -1,7 +1,7 @@
 # Malicious Code Scanner
 
-![CI](https://github.com/makmour/Malicious-Code-Scanner/actions/workflows/ci.yml/badge.svg)
-![Release](https://github.com/makmour/Malicious-Code-Scanner/actions/workflows/release.yml/badge.svg)
+![CI](https://github.com/makmour/Malicious-Code-Scanner/actions/workflows/ci.yml/badge.svg?branch=main)
+![Release](https://github.com/makmour/Malicious-Code-Scanner/actions/workflows/release.yml/badge.svg?branch=main)
 
 A lightweight PHP malware & backdoor scanner.  
 Supports CLI usage, JSON/SARIF reports, entropy heuristics, quarantine mode, WordPress-specific rules, and pluggable notifiers (email, webhooks).
@@ -54,7 +54,12 @@ bin/malcode-scan --path=/var/www/html --report=json --progress
 
 ### With email + webhook alerts
 ```bash
-bin/malcode-scan   --path=/var/www/html   --report=json   --email=alerts@example.com   --smtp-host=smtp.example.com --smtp-user=alerts@example.com --smtp-pass=secret --smtp-port=587   --webhook=https://hooks.slack.com/services/XXX/YYY/ZZZ
+bin/malcode-scan \
+  --path=/var/www/html \
+  --report=json \
+  --email=alerts@example.com \
+  --smtp-host=smtp.example.com --smtp-user=alerts@example.com --smtp-pass=secret --smtp-port=587 \
+  --webhook=https://hooks.slack.com/services/XXX/YYY/ZZZ
 ```
 
 ### WordPress mode
